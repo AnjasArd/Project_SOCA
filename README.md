@@ -7,9 +7,7 @@ kerja di lingkungan **galangan kapal**. Sistem ini memanfaatkan
 algoritma **YOLOv5** untuk mendeteksi penggunaan **helm keselamatan**
 dan **rompi keselamatan (safety vest)** secara otomatis melalui kamera
 pengawas (CCTV), kemudian menampilkan hasil deteksi melalui **website
-berbasis Flask**.
-
-SOCA dikembangkan untuk membantu **safety officer** dalam
+berbasis Flask**. SOCA dikembangkan untuk membantu **safety officer** dalam
 mengidentifikasi pelanggaran penggunaan APD secara lebih cepat, akurat,
 dan terdokumentasi secara digital.
 
@@ -21,7 +19,7 @@ dan terdokumentasi secara digital.
 - 🎥 Pemantauan real-time dari kamera
 - 📹 Deteksi dari video
 - 🖼 Deteksi dari gambar
-- 🌐 Dashboard website berbasis Flask
+- 🌐 Dashboard website berbasis Flask yang ringan dan fleksibel
 - 📊 Visualisasi data pelanggaran
 - 📁 Download log pelanggaran (ZIP / XLSX)
 - ⚠️ Notifikasi pelanggaran APD
