@@ -92,7 +92,7 @@ http://localhost:5000
 *python detect.py --weights runs/train/skenario4s_best/weights/best.pt
 --img 640 --source 0 --view-img*
 
-#@# Video Source
+### Video Source
 
 *python detect.py --weights runs/train/skenario4s_best/weights/best.pt
 --img 640 --source video/NoAPD2.mp4 --view-img*
