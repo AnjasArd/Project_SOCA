@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pemantauan APD</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .btn-download-csv:hover {
+            background-color: #0056b3;
+        }
+
+        #violationList .list-item.active {
+            background: #e0e7ff;
+            color: #1e40af;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .risk-high {
+            background-color: #ffcccc !important;
+            color: #b30000;
+        }
+
+        .risk-medium {
+            background-color: #fff7cc !important;
+            color: #b38f00;
+        }
+
+        .risk-low {
+            background-color: #d4edda !important;
+            color: #155724;
+        }
+    </style>
+    <script>
+        async function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                console.log("Browser ini tidak mendukung notifikasi desktop");
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                console.log("Status izin notifikasi:", permission);
+                if (permission === "granted") {
+                    console.log("Izin notifikasi diberikan!");
+                } else if (permission === "denied") {
+                    console.warn("Izin notifikasi ditolak oleh pengguna");
+                }
+            } catch (error) {
+                console.error("Error saat meminta izin notifikasi:", error);
+            }
+        }
+
+        function showNotification(title, body, icon = null) {
+            console.log("Mencoba menampilkan notifikasi:", { title, body });
+
+            if (!("Notification" in window)) {
+                console.warn("Browser tidak mendukung notifikasi, menggunakan alert sebagai fallback");
+                alert(body);
+                return;
+            }
+
+            if (Notification.permission === "granted") {
+                const options = {
+                    body: body,
+                    icon: icon || '/static/images/warning-icon.png',
+                    vibrate: [200, 100, 200]
+                };
+                try {
+                    new Notification(title, options);
+                    console.log("Notifikasi berhasil ditampilkan");
+                } catch (error) {
+                    console.error("Gagal menampilkan notifikasi:", error);
+                    alert(body);
+                }
+            } else {
+                console.warn("Izin notifikasi tidak diberikan, status:", Notification.permission);
+                alert(body);
+            }
+        }
+
+        async function checkNotifications() {
+            try {
+                console.log("Mengecek notifikasi baru...");
+                const response = await fetch('/api/notifications');
+                const data = await response.json();
+                console.log("Data notifikasi diterima:", data);
+
+                data.forEach(notification => {
+                    let title = "Pelanggaran APD Terdeteksi";
+                    let message = "";
+                    if (notification.type === "no-helm") {
+                        message = `Pelanggaran: Tidak Memakai Helm\nFile: ${notification.filename}`;
+                    } else if (notification.type === "no-vest") {
+                        message = `Pelanggaran: Tidak Memakai Vest\nFile: ${notification.filename}`;
+                    }
+
+                    if (message) {
+                        console.log("Menampilkan notifikasi untuk:", notification.type);
+                        showNotification(title, message);
+                    }
+                });
+            } catch (error) {
+                console.error("Gagal mengambil notifikasi:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Halaman dimuat, meminta izin notifikasi");
+            requestNotificationPermission();
+        });
+
+        console.log("Memulai interval pengecekan notifikasi");
+        setInterval(checkNotifications, 5000);
+
+        function updateDateTimeHeader() {
+            const now = new Date();
+            const pad = n => n.toString().padStart(2, '0');
+            const timeStr = `${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`;
+            const hari = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+            const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const tglStr = `${hari[now.getDay()]}, ${pad(now.getDate())} ${bulan[now.getMonth()]} ${now.getFullYear()}`;
+            document.getElementById('dashboard-time').textContent = timeStr;
+            document.getElementById('dashboard-date').textContent = tglStr;
+        }
+        setInterval(updateDateTimeHeader, 1000);
+        updateDateTimeHeader();
+
+        function updateViolationList() {
+            fetch('/api/violations')
+                .then(response => response.json())
+                .then(data => {
+                    const violationList = document.getElementById('violationList');
+                    violationList.innerHTML = '';
+                    document.getElementById('total-violations').textContent = data.length;
+                    let compliance = 100 - data.length;
+                    if (compliance < 0) compliance = 0;
+                    document.getElementById('compliance-rate').textContent = compliance + '%';
+                    let foundSelected = false;
+                    data.forEach((item, idx) => {
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        let timestamp = '';
+                        const match = item.match(/(\d{8}_\d{6})/);
+                        if (match) {
+                            const t = match[1].split('_')[1];
+                            timestamp = t.slice(0, 2) + '.' + t.slice(2, 4) + '.' + t.slice(4, 6);
+                        } else {
+                            const now = new Date();
+                            const pad = n => n.toString().padStart(2, '0');
+                            timestamp = `${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`;
+                        }
+                        li.innerHTML = `<span class='violation-filename' title='${item}'>${item}</span><span class='violation-timestamp'>${timestamp}</span>`;
+                        li.style.cursor = 'pointer';
+
+                        li.addEventListener('click', function () {
+                            document.querySelectorAll('#violationList .list-item').forEach(el => el.classList.remove('active'));
+                            li.classList.add('active');
+                            updateCCTVImage(item);
+                            currentSelectedViolation = item;
+                            analyzeRiskProfileForFile(item);
+                            updateDownloadImageButton();
+                        });
+
+                        if (item === currentSelectedViolation) {
+                            li.classList.add('active');
+                            foundSelected = true;
+                        }
+                        violationList.appendChild(li);
+                    });
+                    if (data.length > 0 && !foundSelected) {
+                        const firstLi = violationList.querySelector('.list-item');
+                        if (firstLi) {
+                            firstLi.classList.add('active');
+                            currentSelectedViolation = data[0];
+                            analyzeRiskProfileForFile(data[0]);
+                            updateDownloadImageButton();
+                        }
+                    } else if (data.length === 0) {
+                        currentSelectedViolation = null;
+                        document.getElementById('risk-profile').innerHTML = 'Tidak ada pelanggaran terdeteksi.';
+                        updateDownloadImageButton();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function analyzeRiskProfileForFile(filename) {
+            let hasNoHelm = filename.includes('no-helm');
+            let hasNoVest = filename.includes('no-vest');
+            let riskDiv = document.getElementById('risk-profile');
+            let html = '';
+            if (hasNoHelm && hasNoVest) {
+                html = `
+                <div class="risk-card risk-high">
+                    <div class="risk-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Risiko Tinggi (Tidak Memakai Helm dan Vest):</div>
+                    <div class="risk-card-desc">Terkena percikan las, bahan kimia, tertimpa benda berat, cedera kepala, dan risiko kecelakaan kerja lainnya.</div>
+                </div>
+                <div class="risk-row">
+                    <div class="risk-card risk-helm risk-wide">
+                        <div class="risk-card-title"><i class='fa-solid fa-hard-hat'></i> Risiko Tanpa Helm:</div>
+                        <ul>
+                            <li>Cedera kepala akibat benda jatuh</li>
+                            <li>Benturan dengan struktur kapal</li>
+                            <li>Percikan las ke kepala</li>
+                        </ul>
+                    </div>
+                    <div class="risk-card risk-vest risk-wide">
+                        <div class="risk-card-title"><i class='fa-solid fa-vest'></i> Risiko Tanpa Vest:</div>
+                        <ul>
+                            <li>Sulit terlihat oleh operator</li>
+                            <li>Cedera dada dan perut</li>
+                            <li>Kurang perlindungan dari bahan kimia</li>
+                        </ul>
+                    </div>
+                </div>`;
+            } else if (hasNoHelm) {
+                html = `
+                <div class="risk-row">
+                    <div class="risk-card risk-helm risk-wide" style="width:100%">
+                        <div class="risk-card-title"><i class='fa-solid fa-hard-hat'></i> Risiko Tanpa Helm:</div>
+                        <ul>
+                            <li>Cedera kepala akibat benda jatuh</li>
+                            <li>Benturan dengan struktur kapal</li>
+                            <li>Percikan las ke kepala</li>
+                        </ul>
+                    </div>
+                </div>`;
+            } else if (hasNoVest) {
+                html = `
+                <div class="risk-row">
+                    <div class="risk-card risk-vest risk-wide" style="width:100%">
+                        <div class="risk-card-title"><i class='fa-solid fa-vest'></i> Risiko Tanpa Vest:</div>
+                        <ul>
+                            <li>Sulit terlihat oleh operator</li>
+                            <li>Cedera dada dan perut</li>
+                            <li>Kurang perlindungan dari bahan kimia</li>
+                        </ul>
+                    </div>
+                </div>`;
+            } else {
+                html = `<div class="risk-card risk-none">Tidak ada pelanggaran terdeteksi.</div>`;
+            }
+            riskDiv.innerHTML = html;
+        }
+
+        function updateCCTVImage(imageFilename) {
+            const cctvImage = document.getElementById('cctvImage');
+            cctvImage.src = `static/violations/${imageFilename}?t=${new Date().getTime()}`;
+        }
+
+        function updateDownloadImageButton() {
+            const btn = document.getElementById('btn-download-image');
+            if (currentSelectedViolation) {
+                btn.href = `/download-violation-image?filename=${encodeURIComponent(currentSelectedViolation)}`;
+                btn.classList.remove('disabled');
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = 1;
+            } else {
+                btn.href = '#';
+                btn.classList.add('disabled');
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = 0.5;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            updateDownloadImageButton();
+        });
+    </script>
+</head>
+
+<body>
+
+    <header class="header">
+        <h1 class="header-title">Dashboard Pemantauan APD Pekerja Galangan</h1>
+        <div class="dashboard-bar">
+            <div class="dashboard-bar-item">
+                <i class="fa-regular fa-clock"></i>
+                <div>
+                    <div class="bar-label">WAKTU</div>
+                    <div class="bar-value" id="dashboard-time">01.57.56</div>
+                </div>
+            </div>
+            <div class="dashboard-bar-item">
+                <i class="fa-regular fa-calendar"></i>
+                <div>
+                    <div class="bar-label">TANGGAL</div>
+                    <div class="bar-value" id="dashboard-date">Sel, 24 Jun 2025</div>
+                </div>
+            </div>
+            <div class="dashboard-bar-item">
+                <span class="status-dot"></span>
+                <div>
+                    <div class="bar-label">STATUS</div>
+                    <div class="bar-value status-active">Sistem Aktif</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-summary">
+        <div class="summary-card">
+            <div class="summary-label">Total Kamera</div>
+            <div class="summary-value">1</div>
+            <div class="summary-icon"><i class="fa-solid fa-camera"></i></div>
+        </div>
+        <div class="summary-card" id="card-total-violations">
+            <div class="summary-label">Pelanggaran Hari Ini</div>
+            <div class="summary-value" id="total-violations">0</div>
+            <div class="summary-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        </div>
+        <div class="summary-card" id="card-compliance-rate">
+            <div class="summary-label">Tingkat Kepatuhan</div>
+            <div class="summary-value" id="compliance-rate">100%</div>
+            <div class="summary-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2><span class="section-icon"><i class="fa-solid fa-users"></i></span> Daftar Pelanggar APD</h2>
+            <ul id="violationList" class="list"></ul>
+            <div style="margin-top: 10px; text-align: center;">
+                <a href="/download-all-violations" class="btn-download-csv"
+                    style="display: inline-block; padding: 6px 12px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.95em; box-shadow: 0 2px 6px rgba(0,0,0,0.07); margin-top: 8px;">
+                    <i class="fa-solid fa-file-zipper"></i> Unduh Daftar Pelanggaran (ZIP)
+                </a>
+            </div>
+        </div>
+
+        <div class="section cctv-section">
+            <h2><span class="section-icon"><i class="fa-solid fa-camera"></i></span> Bukti Pelanggaran</h2>
+            <img id="cctvImage" src="static/images/PPEvector.png" alt="CCTV Feed">
+            <div style="display: flex; justify-content: center; align-items: center; margin-top: 10px; gap: 10px;">
+                <a href="/download-log" class="btn-download-csv"
+                    style="display: inline-block; padding: 6px 12px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.95em; box-shadow: 0 2px 6px rgba(0,0,0,0.07);"><i
+                        class="fa-solid fa-download"></i> Unduh Statistik Pelanggaran (XLSX)</a>
+
+            </div>
+        </div>
+
+        <div class="section risk-profile">
+            <h2 class="section-icon"><i class="fa-solid fa-triangle-exclamation" style="display:none;"></i> Profil
+                Risiko</h2>
+            <div id="risk-profile" class="risk-profile-content"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 Developed by Muhammad Anjas A. (JhazCode)</p>
+    </footer>
+
+    <script>
+        let intervalId;
+        let lastViolations = [];
+        let currentSelectedViolation = null;
+
+        function updateViolationList() {
+            fetch('/api/violations')
+                .then(response => response.json())
+                .then(data => {
+                    const violationList = document.getElementById('violationList');
+                    violationList.innerHTML = '';
+                    document.getElementById('total-violations').textContent = data.length;
+                    let compliance = 100 - data.length;
+                    if (compliance < 0) compliance = 0;
+                    document.getElementById('compliance-rate').textContent = compliance + '%';
+                    let foundSelected = false;
+                    data.forEach((item, idx) => {
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        let timestamp = '';
+                        const match = item.match(/(\d{8}_\d{6})/);
+                        if (match) {
+                            const t = match[1].split('_')[1];
+                            timestamp = t.slice(0, 2) + '.' + t.slice(2, 4) + '.' + t.slice(4, 6);
+                        } else {
+                            const now = new Date();
+                            const pad = n => n.toString().padStart(2, '0');
+                            timestamp = `${pad(now.getHours())}.${pad(now.getMinutes())}.${pad(now.getSeconds())}`;
+                        }
+                        li.innerHTML = `<span class='violation-filename' title='${item}'>${item}</span><span class='violation-timestamp'>${timestamp}</span>`;
+                        li.style.cursor = 'pointer';
+
+                        li.addEventListener('click', function () {
+                            document.querySelectorAll('#violationList .list-item').forEach(el => el.classList.remove('active'));
+                            li.classList.add('active');
+                            updateCCTVImage(item);
+                            currentSelectedViolation = item;
+                            analyzeRiskProfileForFile(item);
+                            updateDownloadImageButton();
+                        });
+
+                        if (item === currentSelectedViolation) {
+                            li.classList.add('active');
+                            foundSelected = true;
+                        }
+                        violationList.appendChild(li);
+                    });
+                    if (data.length > 0 && !foundSelected) {
+                        const firstLi = violationList.querySelector('.list-item');
+                        if (firstLi) {
+                            firstLi.classList.add('active');
+                            currentSelectedViolation = data[0];
+                            analyzeRiskProfileForFile(data[0]);
+                            updateDownloadImageButton();
+                        }
+                    } else if (data.length === 0) {
+                        currentSelectedViolation = null;
+                        document.getElementById('risk-profile').innerHTML = 'Tidak ada pelanggaran terdeteksi.';
+                        updateDownloadImageButton();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function analyzeRiskProfileForFile(filename) {
+            let hasNoHelm = filename.includes('no-helm');
+            let hasNoVest = filename.includes('no-vest');
+            let riskDiv = document.getElementById('risk-profile');
+            let html = '';
+            if (hasNoHelm && hasNoVest) {
+                html = `
+                <div class="risk-card risk-high">
+                    <div class="risk-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Risiko Tinggi (Tidak Memakai Helm dan Vest):</div>
+                    <div class="risk-card-desc">Terkena percikan las, bahan kimia, tertimpa benda berat, cedera kepala, dan risiko kecelakaan kerja lainnya.</div>
+                </div>
+                <div class="risk-row">
+                    <div class="risk-card risk-helm risk-wide">
+                        <div class="risk-card-title"><i class='fa-solid fa-hard-hat'></i> Risiko Tanpa Helm:</div>
+                        <ul>
+                            <li>Cedera kepala akibat benda jatuh</li>
+                            <li>Benturan dengan struktur kapal</li>
+                            <li>Percikan las ke kepala</li>
+                        </ul>
+                    </div>
+                    <div class="risk-card risk-vest risk-wide">
+                        <div class="risk-card-title"><i class='fa-solid fa-vest'></i> Risiko Tanpa Vest:</div>
+                        <ul>
+                            <li>Sulit terlihat oleh operator</li>
+                            <li>Cedera dada dan perut</li>
+                            <li>Kurang perlindungan dari bahan kimia</li>
+                        </ul>
+                    </div>
+                </div>`;
+            } else if (hasNoHelm) {
+                html = `
+                <div class="risk-row">
+                    <div class="risk-card risk-helm risk-wide" style="width:100%">
+                        <div class="risk-card-title"><i class='fa-solid fa-hard-hat'></i> Risiko Tanpa Helm:</div>
+                        <ul>
+                            <li>Cedera kepala akibat benda jatuh</li>
+                            <li>Benturan dengan struktur kapal</li>
+                            <li>Percikan las ke kepala</li>
+                        </ul>
+                    </div>
+                </div>`;
+            } else if (hasNoVest) {
+                html = `
+                <div class="risk-row">
+                    <div class="risk-card risk-vest risk-wide" style="width:100%">
+                        <div class="risk-card-title"><i class='fa-solid fa-vest'></i> Risiko Tanpa Vest:</div>
+                        <ul>
+                            <li>Sulit terlihat oleh operator</li>
+                            <li>Cedera dada dan perut</li>
+                            <li>Kurang perlindungan dari bahan kimia</li>
+                        </ul>
+                    </div>
+                </div>`;
+            } else {
+                html = `<div class="risk-card risk-none">Tidak ada pelanggaran terdeteksi.</div>`;
+            }
+            riskDiv.innerHTML = html;
+        }
+
+        function updateCCTVImage(imageFilename) {
+            const cctvImage = document.getElementById('cctvImage');
+            cctvImage.src = `static/violations/${imageFilename}?t=${new Date().getTime()}`;
+        }
+
+        function startAutoUpdate() {
+            intervalId = setInterval(updateViolationList, 5000);
+        }
+
+        updateViolationList();
+        startAutoUpdate();
+    </script>
+</body>
+
+</html>
