@@ -34,10 +34,10 @@ Model mendeteksi **4 kelas utama**:
 
 ---
 
-- helm Pekerja menggunakan helm
-- vest Pekerja menggunakan rompi
-- no_helm Pekerja tidak menggunakan helm
-- no_vest Pekerja tidak menggunakan rompi
+- **helm** Pekerja menggunakan helm
+- **vest** Pekerja menggunakan rompi
+- **no_helm** Pekerja tidak menggunakan helm
+- **no_vest** Pekerja tidak menggunakan rompi
 
 ---
 
@@ -69,7 +69,7 @@ virtualenv envdir
 
 ### 4. Aktivasi Virtual Environment
 
-.envdir`\Scripts`{=tex}`\activate`{=tex}
+.\envdir\Scripts\activate
 
 ### 5. Menjalankan Web Application
 
@@ -83,7 +83,7 @@ http://localhost:5000
 
 # 🎥 Menjalankan Deteksi APD YOLOv5
 
-## Masuk ke directory YOLOv5
+### Masuk ke directory YOLOv5
 
 cd yolov5
 
@@ -119,9 +119,6 @@ Total dataset: **808 gambar teranotasi** dengan resolusi **640×640**.
 ---
 
 # 📈 Hasil Model Terbaik
-
-Metric Nilai
-
 ---
 
 - Precision 0.91
@@ -157,7 +154,7 @@ Sistem dapat digunakan pada:
 # 👨‍💻 Author
 
 **Anjas Ard**\
-Safety Officer Computerized Assistant (SOCA) Project
+Safety Officer Computerized Assistant (SOCA) Project\
 Computer Vision Based PPE Monitoring System
 
 ---
