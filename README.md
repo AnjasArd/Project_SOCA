@@ -17,13 +17,13 @@ dan terdokumentasi secara digital.
 
 # 🚀 Fitur Utama
 
-- 🔍 Deteksi APD berbasis YOLOv5\
-- 🎥 Pemantauan real-time dari kamera\
-- 📹 Deteksi dari video\
-- 🖼 Deteksi dari gambar\
-- 🌐 Dashboard website berbasis Flask\
-- 📊 Visualisasi data pelanggaran\
-- 📁 Download log pelanggaran (ZIP / XLSX)\
+- 🔍 Deteksi APD berbasis YOLOv5
+- 🎥 Pemantauan real-time dari kamera
+- 📹 Deteksi dari video
+- 🖼 Deteksi dari gambar
+- 🌐 Dashboard website berbasis Flask
+- 📊 Visualisasi data pelanggaran
+- 📁 Download log pelanggaran (ZIP / XLSX)
 - ⚠️ Notifikasi pelanggaran APD
 
 ---
@@ -57,23 +57,23 @@ Model mendeteksi **4 kelas utama**:
 
 ### 1. Bypass PowerShell Security
 
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force
+*Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force*
 
 ### 2. Masuk ke directory Web App
 
-cd webapp
+*cd webapp*
 
 ### 3. Membuat Virtual Environment
 
-virtualenv envdir
+*virtualenv envdir*
 
 ### 4. Aktivasi Virtual Environment
 
-.\envdir\Scripts\activate
+*.\envdir\Scripts\activate*
 
 ### 5. Menjalankan Web Application
 
-python app.py
+*python app.py*
 
 Buka browser:
 
@@ -85,22 +85,22 @@ http://localhost:5000
 
 ### Masuk ke directory YOLOv5
 
-cd yolov5
+*cd yolov5*
 
-## Real-Time Camera
+### Real-Time Camera
 
-python detect.py --weights runs/train/skenario4s_best/weights/best.pt
---img 640 --source 0 --view-img
+*python detect.py --weights runs/train/skenario4s_best/weights/best.pt
+--img 640 --source 0 --view-img*
 
-## Video Source
+#@# Video Source
 
-python detect.py --weights runs/train/skenario4s_best/weights/best.pt
---img 640 --source video/NoAPD2.mp4 --view-img
+*python detect.py --weights runs/train/skenario4s_best/weights/best.pt
+--img 640 --source video/NoAPD2.mp4 --view-img*
 
-## Image Source
+### Image Source
 
-python detect.py --weights runs/train/skenario4s_best/weights/best.pt
---img 640 --source image/testimage.jpg --view-img
+*python detect.py --weights runs/train/skenario4s_best/weights/best.pt
+--img 640 --source image/testimage.jpg --view-img*
 
 ---
 
