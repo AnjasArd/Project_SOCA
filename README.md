@@ -32,8 +32,6 @@ dan terdokumentasi secara digital.
 
 Model mendeteksi **4 kelas utama**:
 
-Class Deskripsi
-
 ---
 
 - helm Pekerja menggunakan helm
@@ -85,7 +83,7 @@ http://localhost:5000
 
 # 🎥 Menjalankan Deteksi APD YOLOv5
 
-Masuk ke directory YOLOv5
+## Masuk ke directory YOLOv5
 
 cd yolov5
 
@@ -102,7 +100,7 @@ python detect.py --weights runs/train/skenario4s_best/weights/best.pt
 ## Image Source
 
 python detect.py --weights runs/train/skenario4s_best/weights/best.pt
---img 640 --source image/man_ppe2.jpg --view-img
+--img 640 --source image/testimage.jpg --view-img
 
 ---
 
@@ -111,9 +109,9 @@ python detect.py --weights runs/train/skenario4s_best/weights/best.pt
 Dataset diperoleh dari rekaman **CCTV galangan kapal** yang kemudian
 melalui proses:
 
-1.  Frame extraction dari video\
-2.  Image annotation\
-3.  Dataset preprocessing\
+1.  Frame extraction dari video
+2.  Image annotation
+3.  Dataset preprocessing
 4.  Training model YOLOv5
 
 Total dataset: **808 gambar teranotasi** dengan resolusi **640×640**.
@@ -126,9 +124,9 @@ Metric Nilai
 
 ---
 
-Precision 0.91
-Recall 0.87
-mAP@0.5 0.93
+- Precision 0.91
+- Recall 0.87
+- mAP@0.5 0.93
 
 Model terbaik diperoleh dari **Skenario 4**.
 
@@ -138,8 +136,8 @@ Model terbaik diperoleh dari **Skenario 4**.
 
 Evaluasi sistem dilakukan menggunakan:
 
-- Confusion Matrix\
-- Blackbox Testing\
+- Confusion Matrix
+- Blackbox Testing
 - Kuesioner Pengguna
 
 ---
@@ -159,7 +157,7 @@ Sistem dapat digunakan pada:
 # 👨‍💻 Author
 
 **Anjas Ard**\
-Safety Officer Computerized Assistant (SOCA) Project\
+Safety Officer Computerized Assistant (SOCA) Project
 Computer Vision Based PPE Monitoring System
 
 ---
