@@ -36,10 +36,10 @@ Class Deskripsi
 
 ---
 
-helm Pekerja menggunakan helm
-vest Pekerja menggunakan rompi
-no_helm Pekerja tidak menggunakan helm
-no_vest Pekerja tidak menggunakan rompi
+- helm Pekerja menggunakan helm
+- vest Pekerja menggunakan rompi
+- no_helm Pekerja tidak menggunakan helm
+- no_vest Pekerja tidak menggunakan rompi
 
 ---
 
